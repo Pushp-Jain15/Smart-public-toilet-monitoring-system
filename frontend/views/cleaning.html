@@ -1,0 +1,112 @@
+<!-- Cleaning Records View -->
+<div>
+  <!-- Add Button -->
+  <div class="flex-between mb-16">
+    <h2 style="margin: 0;">Cleaning Records</h2>
+    <button class="btn btn-primary" ng-click="toggleForm()" id="btn-add-cleaning">
+      {{ showForm ? '✕ Cancel' : '+ Add Record' }}
+    </button>
+  </div>
+
+  <!-- Add Cleaning Record Form -->
+  <div class="form-section" ng-show="showForm" id="add-cleaning-form">
+    <h3>Add Cleaning Record</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Toilet</label>
+        <select ng-model="newRecord.toilet_id">
+          <option value="">Select Toilet</option>
+          <option ng-repeat="t in toilets" value="{{ t.toilet_id }}">
+            #{{ t.toilet_id }} — {{ t.area_name }} ({{ t.toilet_type }})
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Staff</label>
+        <select ng-model="newRecord.staff_id">
+          <option value="">Select Staff</option>
+          <option ng-repeat="s in staffList" value="{{ s.staff_id }}">
+            {{ s.staff_name }} ({{ s.Shift }})
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cleaning Time</label>
+        <input type="datetime-local" ng-model="newRecord.cleaning_time">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Remarks</label>
+        <textarea ng-model="newRecord.remarks" placeholder="Enter remarks (optional)"></textarea>
+      </div>
+      <div class="form-group" style="flex: 0; align-self: flex-end;">
+        <button class="btn btn-success" ng-click="addRecord()" id="btn-submit-cleaning">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cleaning Records Table -->
+  <div class="card">
+    <table class="data-table" id="cleaning-table">
+      <thead>
+        <tr>
+          <th>Clean ID</th>
+          <th>Toilet ID</th>
+          <th>Area</th>
+          <th>Staff Name</th>
+          <th>Cleaning Time</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="rec in records">
+          <td>{{ rec.clean_id }}</td>
+          <td>{{ rec.toilet_id }}</td>
+          <td>{{ rec.area_name }}</td>
+          <td>{{ rec.staff_name }}</td>
+          <td>{{ rec.cleaning_time | date:'dd-MM-yyyy HH:mm' }}</td>
+          <td>{{ rec.remarks || '—' }}</td>
+        </tr>
+        <tr ng-if="records.length === 0">
+          <td colspan="6" class="empty-state">No cleaning records found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cleaning Summary -->
+  <div class="card mt-24">
+    <div class="card-header">
+      <h2>Cleaning Summary</h2>
+    </div>
+    <table class="data-table" id="cleaning-summary-table">
+      <thead>
+        <tr>
+          <th>Staff Name</th>
+          <th>Shift</th>
+          <th>Total Cleanings</th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="s in summary">
+          <td>{{ s.staff_name }}</td>
+          <td>
+            <span class="badge" ng-class="getShiftBadge(s.Shift)">{{ s.Shift }}</span>
+          </td>
+          <td><strong>{{ s.total_cleanings }}</strong></td>
+          <td>
+            <div class="cleaning-bar-wrapper">
+              <div class="cleaning-bar" ng-style="{'width': getBarWidth(s.total_cleanings)}"></div>
+              <span class="text-muted">{{ s.total_cleanings }}</span>
+            </div>
+          </td>
+        </tr>
+        <tr ng-if="summary.length === 0">
+          <td colspan="4" class="empty-state">No cleaning data available</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+<!-- Sensors & Readings View -->
+<div>
+  <!-- Section A: Sensors List -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Sensors</h2>
+      <div class="form-group" style="margin: 0; min-width: 160px;">
+        <select ng-model="sensorTypeFilter" id="sensor-type-filter">
+          <option value="">All Types</option>
+          <option value="Gas">Gas</option>
+          <option value="Water">Water</option>
+          <option value="Temperature">Temperature</option>
+        </select>
+      </div>
+    </div>
+    <table class="data-table" id="sensors-table">
+      <thead>
+        <tr>
+          <th>Sensor ID</th>
+          <th>Sensor Type</th>
+          <th>Toilet ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="sensor in sensors | filter: {sensor_type: sensorTypeFilter}">
+          <td>{{ sensor.sensor_id }}</td>
+          <td>
+            <span class="badge" ng-class="getSensorTypeBadge(sensor.sensor_type)">
+              {{ sensor.sensor_type }}
+            </span>
+          </td>
+          <td>{{ sensor.toilet_id }}</td>
+        </tr>
+        <tr ng-if="(sensors | filter: {sensor_type: sensorTypeFilter}).length === 0">
+          <td colspan="3" class="empty-state">No sensors found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section B: Latest Readings -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Latest Readings</h2>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stat-cards mb-16" id="reading-stats">
+      <div class="stat-card orange">
+        <div class="stat-label">Avg Gas</div>
+        <div class="stat-value">{{ avgGas || '—' }}</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Avg Water</div>
+        <div class="stat-value">{{ avgWater || '—' }}</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Avg Temperature</div>
+        <div class="stat-value">{{ avgTemp || '—' }}</div>
+      </div>
+    </div>
+
+    <table class="data-table" id="readings-table">
+      <thead>
+        <tr>
+          <th>Reading ID</th>
+          <th>Sensor ID</th>
+          <th>Sensor Type</th>
+          <th>Value</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="r in readings | orderBy: '-reading_time' | limitTo: 50">
+          <td>{{ r.reading_id }}</td>
+          <td>{{ r.sensor_id }}</td>
+          <td>
+            <span class="badge" ng-class="getSensorTypeBadge(r.sensor_type)">
+              {{ r.sensor_type }}
+            </span>
+          </td>
+          <td>
+            <span ng-class="isThresholdViolation(r) ? 'reading-red' : 'reading-green'">
+              {{ r.reading_value }}
+            </span>
+          </td>
+          <td>{{ r.reading_time | date:'dd-MM-yyyy HH:mm' }}</td>
+        </tr>
+        <tr ng-if="readings.length === 0">
+          <td colspan="5" class="empty-state">No readings found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

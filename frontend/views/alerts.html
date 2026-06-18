@@ -1,0 +1,69 @@
+<!-- Alerts View -->
+<div>
+  <!-- Stat Boxes -->
+  <div class="stat-boxes" id="alert-stat-boxes">
+    <div class="stat-box red-bg">
+      Pending: {{ pendingAlerts.length }}
+    </div>
+    <div class="stat-box green-bg">
+      Resolved: {{ resolvedAlerts.length }}
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-group mb-16" id="alert-tabs">
+    <button ng-class="{'active': activeTab === 'pending'}" ng-click="setTab('pending')">Pending Alerts</button>
+    <button ng-class="{'active': activeTab === 'resolved'}" ng-click="setTab('resolved')">Resolved Alerts</button>
+  </div>
+
+  <!-- Alerts Table -->
+  <div class="card">
+    <table class="data-table" id="alerts-table">
+      <thead>
+        <tr>
+          <th>Alert ID</th>
+          <th>Toilet ID</th>
+          <th>Area Name</th>
+          <th>Alert Type</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Pending Alerts -->
+        <tr ng-repeat="alert in pendingAlerts" ng-show="activeTab === 'pending'">
+          <td>{{ alert.alert_id }}</td>
+          <td>{{ alert.toilet_id }}</td>
+          <td>{{ alert.area_name }}</td>
+          <td>{{ alert.alert_type }}</td>
+          <td>{{ alert.alert_time | date:'dd-MM-yyyy HH:mm' }}</td>
+          <td><span class="badge badge-red">Pending</span></td>
+          <td>
+            <button class="btn btn-success btn-sm" ng-click="resolve(alert.alert_id)">✔ Resolve</button>
+            <button class="btn btn-danger btn-sm" ng-click="deleteAlert(alert.alert_id)">🗑 Delete</button>
+          </td>
+        </tr>
+        <tr ng-if="pendingAlerts.length === 0 && activeTab === 'pending'">
+          <td colspan="7" class="empty-state">No pending alerts</td>
+        </tr>
+
+        <!-- Resolved Alerts -->
+        <tr ng-repeat="alert in resolvedAlerts" ng-show="activeTab === 'resolved'">
+          <td>{{ alert.alert_id }}</td>
+          <td>{{ alert.toilet_id }}</td>
+          <td>{{ alert.area_name }}</td>
+          <td>{{ alert.alert_type }}</td>
+          <td>{{ alert.alert_time | date:'dd-MM-yyyy HH:mm' }}</td>
+          <td><span class="badge badge-green">Resolved</span></td>
+          <td>
+            <button class="btn btn-danger btn-sm" ng-click="deleteAlert(alert.alert_id)">🗑 Delete</button>
+          </td>
+        </tr>
+        <tr ng-if="resolvedAlerts.length === 0 && activeTab === 'resolved'">
+          <td colspan="7" class="empty-state">No resolved alerts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

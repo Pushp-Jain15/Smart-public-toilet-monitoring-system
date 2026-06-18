@@ -1,0 +1,60 @@
+<!-- Locations View -->
+<div>
+  <!-- Header with search and add button -->
+  <div class="flex-between mb-16">
+    <div class="search-bar">
+      <input type="text" ng-model="searchText" placeholder="Search by area name..." id="location-search">
+    </div>
+    <button class="btn btn-primary" ng-click="toggleForm()" id="btn-add-location">
+      {{ showForm ? '✕ Cancel' : '+ Add Location' }}
+    </button>
+  </div>
+
+  <!-- Add Location Form -->
+  <div class="form-section" ng-show="showForm" id="add-location-form">
+    <h3>Add New Location</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Area Name</label>
+        <input type="text" ng-model="newLocation.area_name" placeholder="Enter area name">
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" ng-model="newLocation.city" placeholder="Enter city">
+      </div>
+      <div class="form-group">
+        <label>Pincode</label>
+        <input type="text" ng-model="newLocation.pincode" placeholder="Enter pincode">
+      </div>
+      <div class="form-group" style="flex: 0;">
+        <label>&nbsp;</label>
+        <button class="btn btn-success" ng-click="addLocation()" id="btn-submit-location">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Locations Table -->
+  <div class="card">
+    <table class="data-table" id="locations-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Area Name</th>
+          <th>City</th>
+          <th>Pincode</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="loc in locations | filter: {area_name: searchText}">
+          <td>{{ loc.location_id }}</td>
+          <td>{{ loc.area_name }}</td>
+          <td>{{ loc.city }}</td>
+          <td>{{ loc.pincode }}</td>
+        </tr>
+        <tr ng-if="(locations | filter: {area_name: searchText}).length === 0">
+          <td colspan="4" class="empty-state">No locations found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<!-- Staff View -->
+<div>
+  <!-- Shift Filter & Add Button -->
+  <div class="flex-between mb-16">
+    <div class="tab-group" id="staff-shift-tabs">
+      <button ng-class="{'active': activeShift === 'all'}" ng-click="loadStaff('all')">All</button>
+      <button ng-class="{'active': activeShift === 'Morning'}" ng-click="loadStaff('Morning')">Morning</button>
+      <button ng-class="{'active': activeShift === 'Evening'}" ng-click="loadStaff('Evening')">Evening</button>
+      <button ng-class="{'active': activeShift === 'Night'}" ng-click="loadStaff('Night')">Night</button>
+    </div>
+    <button class="btn btn-primary" ng-click="toggleForm()" id="btn-add-staff">
+      {{ showForm ? '✕ Cancel' : '+ Add Staff' }}
+    </button>
+  </div>
+
+  <!-- Add Staff Form -->
+  <div class="form-section" ng-show="showForm" id="add-staff-form">
+    <h3>Add New Staff Member</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Staff Name</label>
+        <input type="text" ng-model="newStaff.staff_name" placeholder="Enter full name">
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" ng-model="newStaff.phone" placeholder="Enter phone number">
+      </div>
+      <div class="form-group">
+        <label>Shift</label>
+        <select ng-model="newStaff.Shift">
+          <option value="Morning">Morning</option>
+          <option value="Evening">Evening</option>
+          <option value="Night">Night</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex: 0;">
+        <label>&nbsp;</label>
+        <button class="btn btn-success" ng-click="addStaff()" id="btn-submit-staff">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Cards Grid -->
+  <div class="staff-grid" id="staff-cards">
+    <div class="staff-card" ng-repeat="s in staff" ng-style="{'border-top-color': s.Shift === 'Morning' ? '#f59e0b' : (s.Shift === 'Evening' ? '#3b82f6' : '#8b5cf6')}">
+      <div class="staff-name">{{ s.staff_name }}</div>
+      <div class="staff-info">📞 {{ s.phone }}</div>
+      <div class="staff-info">
+        <span class="badge" ng-class="getShiftBadge(s.Shift)">{{ s.Shift }}</span>
+      </div>
+      <div class="staff-cleanings">
+        Total Cleanings: <strong>{{ s.total_cleanings }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="staff.length === 0" class="empty-state">
+    No staff members found
+  </div>
+</div>

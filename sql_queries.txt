@@ -1,0 +1,391 @@
+-- ============================================================
+-- SPTMS — Smart Public Toilet Monitoring System
+-- 50 SQL Queries for MySQL
+-- Run these in MySQL Workbench
+-- ============================================================
+
+USE toilet_monitoring_db;
+
+-- ============================================================
+-- SECTION 1: BASIC SELECT QUERIES (Queries 1–10)
+-- ============================================================
+
+-- Query 1: Get all locations
+SELECT * FROM Location ORDER BY location_id;
+
+-- Query 2: Get all toilets
+SELECT * FROM Toilet ORDER BY toilet_id;
+
+-- Query 3: Get all sensors
+SELECT * FROM Sensor ORDER BY sensor_id;
+
+-- Query 4: Get all sensor readings sorted by latest first
+SELECT * FROM Sensor_Reading ORDER BY reading_time DESC;
+
+-- Query 5: Get all maintenance staff
+SELECT * FROM Maintenance_Staff ORDER BY staff_id;
+
+-- Query 6: Get all cleaning records sorted by latest first
+SELECT * FROM Cleaning_Record ORDER BY cleaning_time DESC;
+
+-- Query 7: Get all alerts sorted by latest first
+SELECT * FROM Alert ORDER BY alert_time DESC;
+
+-- Query 8: Get only active toilets
+SELECT * FROM Toilet WHERE status = 'Active' ORDER BY toilet_id;
+
+-- Query 9: Get only pending alerts
+SELECT * FROM Alert WHERE alert_status = 'Pending' ORDER BY alert_time DESC;
+
+-- Query 10: Get staff working morning shift
+SELECT * FROM Maintenance_Staff WHERE Shift = 'Morning' ORDER BY staff_name;
+
+
+-- ============================================================
+-- SECTION 2: JOIN QUERIES (Queries 11–20)
+-- ============================================================
+
+-- Query 11: Get all toilets with their location area name (INNER JOIN)
+SELECT t.toilet_id, t.toilet_type, t.installation_date, t.status, l.area_name, l.city, l.pincode
+FROM Toilet t
+INNER JOIN Location l ON t.location_id = l.location_id
+ORDER BY t.toilet_id;
+
+-- Query 12: Get all sensor readings with sensor type (JOIN)
+SELECT sr.reading_id, sr.sensor_id, sr.reading_value, sr.reading_time, s.sensor_type, s.toilet_id
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+ORDER BY sr.reading_time DESC;
+
+-- Query 13: Get all alerts with toilet location details (Multi-table JOIN)
+SELECT a.alert_id, a.alert_type, a.alert_time, a.alert_status,
+       t.toilet_id, t.toilet_type, l.area_name, l.city
+FROM Alert a
+JOIN Toilet t ON a.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+ORDER BY a.alert_time DESC;
+
+-- Query 14: Get all cleaning records with staff name and area name (3-table JOIN)
+SELECT cr.clean_id, cr.cleaning_time, cr.remarks,
+       ms.staff_name, ms.Shift,
+       t.toilet_id, t.toilet_type,
+       l.area_name, l.city
+FROM Cleaning_Record cr
+JOIN Maintenance_Staff ms ON cr.staff_id = ms.staff_id
+JOIN Toilet t ON cr.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+ORDER BY cr.cleaning_time DESC;
+
+-- Query 15: Get sensor readings with location info (4-table JOIN)
+SELECT sr.reading_id, sr.reading_value, sr.reading_time,
+       s.sensor_type, t.toilet_type, l.area_name, l.city
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+JOIN Toilet t ON s.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+ORDER BY sr.reading_time DESC;
+
+-- Query 16: Get all locations with toilet count (LEFT JOIN)
+SELECT l.location_id, l.area_name, l.city, l.pincode,
+       COUNT(t.toilet_id) AS total_toilets
+FROM Location l
+LEFT JOIN Toilet t ON l.location_id = t.location_id
+GROUP BY l.location_id, l.area_name, l.city, l.pincode
+ORDER BY total_toilets DESC;
+
+-- Query 17: Get all staff with their cleaning count (LEFT JOIN)
+SELECT ms.staff_id, ms.staff_name, ms.phone, ms.Shift,
+       COUNT(cr.clean_id) AS total_cleanings
+FROM Maintenance_Staff ms
+LEFT JOIN Cleaning_Record cr ON ms.staff_id = cr.staff_id
+GROUP BY ms.staff_id, ms.staff_name, ms.phone, ms.Shift
+ORDER BY total_cleanings DESC;
+
+-- Query 18: Get all toilets with sensor count (LEFT JOIN)
+SELECT t.toilet_id, t.toilet_type, t.status, l.area_name,
+       COUNT(s.sensor_id) AS sensor_count
+FROM Toilet t
+JOIN Location l ON t.location_id = l.location_id
+LEFT JOIN Sensor s ON t.toilet_id = s.toilet_id
+GROUP BY t.toilet_id, t.toilet_type, t.status, l.area_name
+ORDER BY t.toilet_id;
+
+-- Query 19: Get all toilets with their latest alert (LEFT JOIN)
+SELECT t.toilet_id, t.toilet_type, l.area_name,
+       a.alert_type, a.alert_time, a.alert_status
+FROM Toilet t
+JOIN Location l ON t.location_id = l.location_id
+LEFT JOIN Alert a ON t.toilet_id = a.toilet_id
+ORDER BY a.alert_time DESC;
+
+-- Query 20: Get pending alerts with reading value (JOIN with Sensor_Reading)
+SELECT a.alert_id, a.alert_type, a.alert_time,
+       sr.reading_value, s.sensor_type,
+       l.area_name, t.toilet_type
+FROM Alert a
+JOIN Sensor_Reading sr ON a.reading_id = sr.reading_id
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+JOIN Toilet t ON a.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+WHERE a.alert_status = 'Pending'
+ORDER BY a.alert_time DESC;
+
+
+-- ============================================================
+-- SECTION 3: AGGREGATE QUERIES (Queries 21–30)
+-- ============================================================
+
+-- Query 21: Count total toilets, active toilets, and maintenance toilets
+SELECT
+    COUNT(*) AS total_toilets,
+    SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END) AS active_toilets,
+    SUM(CASE WHEN status = 'Under Maintenance' THEN 1 ELSE 0 END) AS maintenance_toilets
+FROM Toilet;
+
+-- Query 22: Count total pending and resolved alerts
+SELECT
+    COUNT(*) AS total_alerts,
+    SUM(CASE WHEN alert_status = 'Pending' THEN 1 ELSE 0 END) AS pending_alerts,
+    SUM(CASE WHEN alert_status = 'Resolved' THEN 1 ELSE 0 END) AS resolved_alerts
+FROM Alert;
+
+-- Query 23: Average, Max, and Min sensor readings grouped by sensor type
+SELECT s.sensor_type,
+       ROUND(AVG(sr.reading_value), 2) AS avg_reading,
+       MAX(sr.reading_value) AS max_reading,
+       MIN(sr.reading_value) AS min_reading,
+       COUNT(sr.reading_id) AS total_readings
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+GROUP BY s.sensor_type;
+
+-- Query 24: Count of alerts by alert type
+SELECT alert_type, COUNT(*) AS alert_count
+FROM Alert
+GROUP BY alert_type
+ORDER BY alert_count DESC;
+
+-- Query 25: Count of alerts per location
+SELECT l.area_name, l.city, COUNT(a.alert_id) AS alert_count
+FROM Alert a
+JOIN Toilet t ON a.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+GROUP BY l.area_name, l.city
+ORDER BY alert_count DESC;
+
+-- Query 26: Count cleanings per staff member
+SELECT ms.staff_name, ms.Shift, COUNT(cr.clean_id) AS total_cleanings
+FROM Cleaning_Record cr
+JOIN Maintenance_Staff ms ON cr.staff_id = ms.staff_id
+GROUP BY ms.staff_name, ms.Shift
+ORDER BY total_cleanings DESC;
+
+-- Query 27: Count staff per shift
+SELECT Shift, COUNT(*) AS staff_count
+FROM Maintenance_Staff
+GROUP BY Shift
+ORDER BY staff_count DESC;
+
+-- Query 28: Count toilets per city
+SELECT l.city, COUNT(t.toilet_id) AS toilet_count
+FROM Toilet t
+JOIN Location l ON t.location_id = l.location_id
+GROUP BY l.city
+ORDER BY toilet_count DESC;
+
+-- Query 29: Count sensors per sensor type
+SELECT sensor_type, COUNT(*) AS sensor_count
+FROM Sensor
+GROUP BY sensor_type
+ORDER BY sensor_count DESC;
+
+-- Query 30: Count sensor readings per toilet (with location)
+SELECT t.toilet_id, l.area_name, COUNT(sr.reading_id) AS total_readings
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+JOIN Toilet t ON s.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+GROUP BY t.toilet_id, l.area_name
+ORDER BY total_readings DESC;
+
+
+-- ============================================================
+-- SECTION 4: SUBQUERY & ADVANCED QUERIES (Queries 31–40)
+-- ============================================================
+
+-- Query 31: Get toilets that have at least one pending alert (Subquery with IN)
+SELECT t.toilet_id, t.toilet_type, t.status, l.area_name
+FROM Toilet t
+JOIN Location l ON t.location_id = l.location_id
+WHERE t.toilet_id IN (
+    SELECT toilet_id FROM Alert WHERE alert_status = 'Pending'
+)
+ORDER BY t.toilet_id;
+
+-- Query 32: Get staff who have done more cleanings than average (Subquery with HAVING)
+SELECT ms.staff_name, ms.Shift, COUNT(cr.clean_id) AS total_cleanings
+FROM Cleaning_Record cr
+JOIN Maintenance_Staff ms ON cr.staff_id = ms.staff_id
+GROUP BY ms.staff_name, ms.Shift
+HAVING COUNT(cr.clean_id) > (
+    SELECT AVG(cnt) FROM (
+        SELECT COUNT(*) AS cnt FROM Cleaning_Record GROUP BY staff_id
+    ) AS avg_table
+);
+
+-- Query 33: Get the latest sensor reading for each sensor type (Subquery)
+SELECT s.sensor_type, sr.reading_value, sr.reading_time
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+WHERE sr.reading_time = (
+    SELECT MAX(sr2.reading_time)
+    FROM Sensor_Reading sr2
+    JOIN Sensor s2 ON sr2.sensor_id = s2.sensor_id
+    WHERE s2.sensor_type = s.sensor_type
+);
+
+-- Query 34: Get top 10 most recent alerts
+SELECT a.alert_id, a.alert_type, a.alert_time, a.alert_status,
+       t.toilet_type, l.area_name
+FROM Alert a
+JOIN Toilet t ON a.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+ORDER BY a.alert_time DESC
+LIMIT 10;
+
+-- Query 35: Get top 5 locations with most alerts
+SELECT l.area_name, l.city, COUNT(a.alert_id) AS alert_count
+FROM Alert a
+JOIN Toilet t ON a.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+GROUP BY l.area_name, l.city
+ORDER BY alert_count DESC
+LIMIT 5;
+
+-- Query 36: Get gas sensor readings that crossed the threshold (> 500)
+SELECT sr.reading_id, sr.reading_value, sr.reading_time,
+       s.sensor_id, t.toilet_id, l.area_name
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+JOIN Toilet t ON s.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+WHERE s.sensor_type = 'Gas' AND sr.reading_value > 500
+ORDER BY sr.reading_value DESC;
+
+-- Query 37: Get water sensor readings that are below threshold (< 30)
+SELECT sr.reading_id, sr.reading_value, sr.reading_time,
+       s.sensor_id, t.toilet_id, l.area_name
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+JOIN Toilet t ON s.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+WHERE s.sensor_type = 'Water' AND sr.reading_value < 30
+ORDER BY sr.reading_value ASC;
+
+-- Query 38: Get temperature readings above threshold (> 35)
+SELECT sr.reading_id, sr.reading_value, sr.reading_time,
+       s.sensor_id, t.toilet_id, l.area_name
+FROM Sensor_Reading sr
+JOIN Sensor s ON sr.sensor_id = s.sensor_id
+JOIN Toilet t ON s.toilet_id = t.toilet_id
+JOIN Location l ON t.location_id = l.location_id
+WHERE s.sensor_type = 'Temperature' AND sr.reading_value > 35
+ORDER BY sr.reading_value DESC;
+
+-- Query 39: Get toilets that have NEVER been cleaned (Subquery with NOT IN)
+SELECT t.toilet_id, t.toilet_type, t.status, l.area_name
+FROM Toilet t
+JOIN Location l ON t.location_id = l.location_id
+WHERE t.toilet_id NOT IN (
+    SELECT DISTINCT toilet_id FROM Cleaning_Record
+)
+ORDER BY t.toilet_id;
+
+-- Query 40: Get locations where ALL toilets are active (Subquery with NOT EXISTS)
+SELECT l.location_id, l.area_name, l.city
+FROM Location l
+WHERE NOT EXISTS (
+    SELECT 1 FROM Toilet t
+    WHERE t.location_id = l.location_id AND t.status != 'Active'
+)
+AND EXISTS (
+    SELECT 1 FROM Toilet t WHERE t.location_id = l.location_id
+)
+ORDER BY l.area_name;
+
+
+-- ============================================================
+-- SECTION 5: INSERT, UPDATE, DELETE QUERIES (Queries 41–50)
+-- ============================================================
+
+-- Query 41: Insert a new location
+INSERT INTO Location (area_name, city, pincode)
+VALUES ('Gomti Nagar', 'Lucknow', '226010');
+
+-- Query 42: Insert a new toilet at the new location
+INSERT INTO Toilet (location_id, toilet_type, installation_date, status)
+VALUES (
+    (SELECT location_id FROM Location WHERE area_name = 'Gomti Nagar'),
+    'Unisex', '2026-03-30', 'Active'
+);
+
+-- Query 43: Insert sensors for the new toilet
+INSERT INTO Sensor (toilet_id, sensor_type)
+VALUES
+    ((SELECT MAX(toilet_id) FROM Toilet), 'Gas');
+INSERT INTO Sensor (toilet_id, sensor_type)
+VALUES
+    ((SELECT MAX(toilet_id) FROM Toilet), 'Water');
+INSERT INTO Sensor (toilet_id, sensor_type)
+VALUES
+    ((SELECT MAX(toilet_id) FROM Toilet), 'Temperature');
+
+-- Query 44: Insert a new sensor reading
+INSERT INTO Sensor_Reading (sensor_id, reading_value, reading_time)
+VALUES (1, 450, NOW());
+
+-- Query 45: Insert a new staff member
+INSERT INTO Maintenance_Staff (staff_name, phone, Shift)
+VALUES ('Pooja Nair', '9876543220', 'Morning');
+
+-- Query 46: Insert a new cleaning record
+INSERT INTO Cleaning_Record (toilet_id, staff_id, cleaning_time, remarks)
+VALUES (1, 1, NOW(), 'Routine morning cleaning completed');
+
+-- Query 47: Insert a new alert
+INSERT INTO Alert (reading_id, toilet_id, alert_type, alert_time, alert_status)
+VALUES (11, 1, 'High Gas Level', NOW(), 'Pending');
+
+-- Query 48: Update — mark an alert as resolved
+UPDATE Alert
+SET alert_status = 'Resolved'
+WHERE alert_id = 1;
+
+-- Query 49: Update — change toilet status to Under Maintenance
+UPDATE Toilet
+SET status = 'Under Maintenance'
+WHERE toilet_id = 1;
+
+-- Query 50: Delete — remove a specific alert
+DELETE FROM Alert
+WHERE alert_id = (SELECT max_id FROM (SELECT MAX(alert_id) AS max_id FROM Alert) AS temp);
+
+
+-- ============================================================
+-- VERIFICATION: Run these after the above queries to confirm
+-- ============================================================
+
+-- Check total record counts in all tables
+SELECT 'Location' AS table_name, COUNT(*) AS total_rows FROM Location
+UNION ALL
+SELECT 'Toilet', COUNT(*) FROM Toilet
+UNION ALL
+SELECT 'Sensor', COUNT(*) FROM Sensor
+UNION ALL
+SELECT 'Sensor_Reading', COUNT(*) FROM Sensor_Reading
+UNION ALL
+SELECT 'Maintenance_Staff', COUNT(*) FROM Maintenance_Staff
+UNION ALL
+SELECT 'Cleaning_Record', COUNT(*) FROM Cleaning_Record
+UNION ALL
+SELECT 'Alert', COUNT(*) FROM Alert;

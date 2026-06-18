@@ -1,0 +1,60 @@
+<!-- Toilets View -->
+<div>
+  <!-- Filter Tabs -->
+  <div class="flex-between mb-16">
+    <div class="tab-group" id="toilet-tabs">
+      <button ng-class="{'active': activeTab === 'all'}" ng-click="loadToilets('all')">All</button>
+      <button ng-class="{'active': activeTab === 'active'}" ng-click="loadToilets('active')">Active</button>
+      <button ng-class="{'active': activeTab === 'maintenance'}" ng-click="loadToilets('maintenance')">Under Maintenance</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" ng-model="searchText" placeholder="Search by area name..." id="toilet-search">
+    </div>
+  </div>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar" id="toilet-summary">
+    Showing <strong>{{ (toilets | filter: {area_name: searchText}).length }}</strong> toilets
+    <span ng-show="activeTab === 'all'">
+      | <strong>{{ activeCount }}</strong> Active
+      | <strong>{{ maintenanceCount }}</strong> Under Maintenance
+    </span>
+  </div>
+
+  <!-- Toilets Table -->
+  <div class="card">
+    <table class="data-table" id="toilets-table">
+      <thead>
+        <tr>
+          <th>Toilet ID</th>
+          <th>Location</th>
+          <th>Type</th>
+          <th>Installation Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="toilet in toilets | filter: {area_name: searchText}">
+          <td>{{ toilet.toilet_id }}</td>
+          <td>{{ toilet.area_name }}</td>
+          <td>{{ toilet.toilet_type }}</td>
+          <td>{{ toilet.installation_date | date:'dd-MM-yyyy' }}</td>
+          <td>
+            <span class="badge" ng-class="toilet.status === 'Active' ? 'badge-green' : 'badge-orange'">
+              {{ toilet.status }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm" ng-class="toilet.status === 'Active' ? 'btn-warning' : 'btn-success'" ng-click="toggleStatus(toilet)">
+              {{ toilet.status === 'Active' ? 'Set Maintenance' : 'Set Active' }}
+            </button>
+          </td>
+        </tr>
+        <tr ng-if="(toilets | filter: {area_name: searchText}).length === 0">
+          <td colspan="6" class="empty-state">No toilets found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

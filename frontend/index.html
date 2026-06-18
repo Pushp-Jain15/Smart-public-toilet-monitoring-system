@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html ng-app="sptmsApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smart Public Toilet Monitoring System — Real-time IoT monitoring dashboard for city public toilets">
+  <title>SPTMS — Smart Toilet Monitor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+  <script src="controllers/dashboardCtrl.js"></script>
+  <script src="controllers/locationCtrl.js"></script>
+  <script src="controllers/toiletCtrl.js"></script>
+  <script src="controllers/sensorCtrl.js"></script>
+  <script src="controllers/alertCtrl.js"></script>
+  <script src="controllers/staffCtrl.js"></script>
+  <script src="controllers/cleaningCtrl.js"></script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo-area">
+      <span class="logo-icon">🚻</span>
+      <h2>SPTMS</h2>
+      <small>Smart Toilet Monitor</small>
+    </div>
+    <nav>
+      <a href="#!/dashboard" ng-class="{'active': isActive('/dashboard')}" id="nav-dashboard">📊 Dashboard</a>
+      <a href="#!/locations" ng-class="{'active': isActive('/locations')}" id="nav-locations">📍 Locations</a>
+      <a href="#!/toilets" ng-class="{'active': isActive('/toilets')}" id="nav-toilets">🚽 Toilets</a>
+      <a href="#!/sensors" ng-class="{'active': isActive('/sensors')}" id="nav-sensors">📡 Sensors</a>
+      <a href="#!/alerts" ng-class="{'active': isActive('/alerts')}" id="nav-alerts">🔔 Alerts <span class="alert-count-badge" ng-show="pendingAlertCount > 0">{{ pendingAlertCount }}</span></a>
+      <a href="#!/staff" ng-class="{'active': isActive('/staff')}" id="nav-staff">👷 Staff</a>
+      <a href="#!/cleaning" ng-class="{'active': isActive('/cleaning')}" id="nav-cleaning">🧹 Cleaning Records</a>
+    </nav>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <div class="topbar">
+      <h1>{{ pageTitle }}</h1>
+      <span class="timestamp">{{ currentTime | date:'dd-MM-yyyy HH:mm:ss' }}</span>
+    </div>
+    <div class="page-content">
+      <div ng-view></div>
+    </div>
+  </div>
+</body>
+</html>

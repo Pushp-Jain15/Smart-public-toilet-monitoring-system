@@ -1,0 +1,84 @@
+<!-- Dashboard View -->
+<div>
+  <!-- Stat Cards -->
+  <div class="stat-cards">
+    <div class="stat-card blue" id="stat-total-toilets">
+      <div class="stat-label">Total Toilets</div>
+      <div class="stat-value">{{ stats.totalToilets || 0 }}</div>
+    </div>
+    <div class="stat-card green" id="stat-active-toilets">
+      <div class="stat-label">Active Toilets</div>
+      <div class="stat-value">{{ stats.activeToilets || 0 }}</div>
+    </div>
+    <div class="stat-card orange" id="stat-maintenance">
+      <div class="stat-label">Under Maintenance</div>
+      <div class="stat-value">{{ stats.maintenanceToilets || 0 }}</div>
+    </div>
+    <div class="stat-card red" id="stat-pending-alerts">
+      <div class="stat-label">Pending Alerts</div>
+      <div class="stat-value">{{ stats.pendingAlerts || 0 }}</div>
+    </div>
+    <div class="stat-card purple" id="stat-total-staff">
+      <div class="stat-label">Total Staff</div>
+      <div class="stat-value">{{ stats.totalStaff || 0 }}</div>
+    </div>
+    <div class="stat-card teal" id="stat-total-cleanings">
+      <div class="stat-label">Total Cleanings</div>
+      <div class="stat-value">{{ stats.totalCleanings || 0 }}</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-container" id="chart-sensor-avg">
+      <h3>Average Sensor Readings</h3>
+      <canvas id="sensorChart"></canvas>
+    </div>
+    <div class="chart-container" id="chart-toilet-status">
+      <h3>Toilet Status Distribution</h3>
+      <canvas id="toiletStatusChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Alerts Table -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Recent Alerts</h2>
+    </div>
+    <table class="data-table" id="recent-alerts-table">
+      <thead>
+        <tr>
+          <th>Alert ID</th>
+          <th>Toilet ID</th>
+          <th>Area</th>
+          <th>Alert Type</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="alert in recentAlerts">
+          <td>{{ alert.alert_id }}</td>
+          <td>{{ alert.toilet_id }}</td>
+          <td>{{ alert.area_name }}</td>
+          <td>{{ alert.alert_type }}</td>
+          <td>{{ alert.alert_time | date:'dd-MM-yyyy HH:mm' }}</td>
+          <td>
+            <span class="badge" ng-class="alert.alert_status === 'Pending' ? 'badge-red' : 'badge-green'">
+              {{ alert.alert_status }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-success btn-sm" ng-click="resolveAlert(alert.alert_id)" ng-show="alert.alert_status === 'Pending'">
+              ✔ Resolve
+            </button>
+          </td>
+        </tr>
+        <tr ng-if="recentAlerts.length === 0">
+          <td colspan="7" class="empty-state">No recent alerts</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
